@@ -1,9 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
+//调试
+//#define _DEBUG_
+//调试的时候进度显示的单位
 #define _CHEK_NUM_ = 10000000
 
+//优化内存占用
 #define BUFF_DIFF 200000
 #define BUFF1 1.1
 #define BUFF2 1.3
@@ -53,14 +58,38 @@ unsigned int getPrimeNumbers(unsigned int maxnum, unsigned int *buff, unsigned i
 	return numbers;
 }
 
+/*
+ * 判断字符串s1是否比s2小
+ */
+int str_smaller(char *s1, char *s2) {
+	return *s2 == '-' || strlen(s1) < strlen(s2) || strcmp(s1, s2) < 0;
+}
+
 int main(int argc, char *argv[]) {
 	if (argc <= 1)
 		return 1;
 
 	unsigned int maxnum = 0;
 	if (argc > 1) {
+		//验证maxnum是否小于2，小于2的话计算没有意义
+		//这里不能用maxnum验证，有负数的问题
 		if (atol(argv[1]) < 2)
 			return 2;
+
+		//判断最大值是否溢出
+		char c[32] = {'\0'};
+		unsigned int a = 1;
+		sprintf(c, "%d", (a << (sizeof(a) * 8 - 1)) - 1);
+		if (str_smaller(c, argv[1])) {
+			//如果溢出
+			//输出错误提示
+			printf("too large maxmiun number");
+			//程序退出
+			//返回1表示最大值溢出
+			return 1;
+		}
+
+		//如果都没有问题
 		maxnum = (unsigned int) atol(argv[1]);
 	}
 
