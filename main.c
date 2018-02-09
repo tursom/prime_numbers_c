@@ -1,3 +1,8 @@
+/*
+ * 计算某个值一下的所有质数的程序
+ * 时间复杂度为 Θ(n*√(n/ln(n)))
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
