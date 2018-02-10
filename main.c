@@ -26,7 +26,10 @@
  * buffsize:缓冲区大小，使用完缓冲区之后函数会立即返回
  * 返回值为计算出了多少个质数
  */
-unsigned int getPrimeNumbers(unsigned int maxnum, unsigned int *buff, unsigned int buffsize) {
+unsigned int getPrimeNumbers(
+		unsigned int maxnum,
+		unsigned int *buff,
+		unsigned int buffsize) {
 	//放入初始值
 	unsigned int numbers = 1;
 	buff[0] = 2;
