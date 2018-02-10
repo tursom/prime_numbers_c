@@ -11,13 +11,21 @@
 //调试
 //#define _DEBUG_
 //调试的时候进度显示的单位
-#define _CHEK_NUM_ = 10000000
+//#define _CHEK_NUM_ = 10000000
 
-//优化内存占用
+//获得合适的缓冲区大小用到的比例系数
+//分阶定义以优化内存占用
 #define BUFF_DIFF 200000
 #define BUFF1 1.1
 #define BUFF2 1.3
 
+/*
+ * 获取某个最大值一下的所有质数
+ * maxnum:最大值
+ * buff:缓冲区，计算结果就存在这个缓冲区里
+ * buffsize:缓冲区大小，使用完缓冲区之后函数会立即返回
+ * 返回值为计算出了多少个质数
+ */
 unsigned int getPrimeNumbers(unsigned int maxnum, unsigned int *buff, unsigned int buffsize) {
 	//放入初始值
 	unsigned int numbers = 1;
@@ -52,28 +60,40 @@ unsigned int getPrimeNumbers(unsigned int maxnum, unsigned int *buff, unsigned i
 		//重置flag
 		flag = 1;
 
+		//是否是调试状态
 #ifdef _DEBUG_
+		//是否需要进行进度输出
 #ifdef _CHEK_NUM_
+		//是否到达输出的标准
+		//即i为_CHEK_NUM_的整数倍
 		if (!(i % _CHEK_NUM_))
+			//输出当前进度
 			printf("%u\n", i);
 #endif
 #endif
 	}
 
+	//返回一共计算出了多少质数
 	return numbers;
 }
 
 /*
  * 判断字符串s1是否比s2小
+ * 对本程序进行了特化
  */
 int str_smaller(char *s1, char *s2) {
 	return *s2 == '-' || strlen(s1) < strlen(s2) || strcmp(s1, s2) < 0;
 }
 
+/*
+ * 程序入口函数
+ */
 int main(int argc, char *argv[]) {
+	//必须给定最大值
 	if (argc <= 1)
 		return 1;
 
+	//最大值
 	unsigned int maxnum = 0;
 	if (argc > 1) {
 		//验证maxnum是否小于2，小于2的话计算没有意义
@@ -107,7 +127,7 @@ int main(int argc, char *argv[]) {
 	unsigned int buffsize = (unsigned int) (
 			//质数数目增长的近似函数
 			maxnum / log(maxnum)
-			//比例系数
+			//乘以比例系数
 			* (
 					//优化内存占用
 					//BUFF_DIFF 200000
