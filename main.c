@@ -85,7 +85,7 @@ unsigned int getPrimeNumbers(
  * 对本程序进行了特化
  */
 int str_smaller(char *s1, char *s2) {
-	return *s2 == '-' || strlen(s1) < strlen(s2) || strcmp(s1, s2) < 0;
+	return !(*s2 != '-' || strlen(s1) > strlen(s2) || strcmp(s1, s2) > 0);
 }
 
 /*
