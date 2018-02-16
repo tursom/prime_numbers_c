@@ -1,6 +1,6 @@
 /*
  * 计算某个值一下的所有质数的程序
- * 时间复杂度为 O(n*ln(n))
+ * 时间复杂度为 Θ(n*√(n/ln(n)))
  */
 
 #include <stdio.h>
@@ -155,9 +155,6 @@ int main(int argc, char *argv[]) {
 		for (int i = 0; i < numbers; i++)
 			printf("%u\n", buff[i]);
 	printf("%u numbers\n", numbers);
-	
-	//释放内存
-	free(buff)
 
 	return 0;
 }
