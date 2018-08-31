@@ -27,7 +27,7 @@
  * 返回值为计算出了多少个质数
  */
 unsigned int getPrimeNumbers(
-        unsigned int maxnum,
+		unsigned int maxnum,
 		unsigned int *buff,
 		unsigned int buffsize) {
 	//放入初始值
