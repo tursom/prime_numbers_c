@@ -9,3 +9,6 @@ out
 gen
 cmake-build-debug
 main
+将删除 .idea/workspace.xml
+将删除 cmake-build-debug/
+将删除 main
