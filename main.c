@@ -15,9 +15,6 @@ size_t getPrimeNumber(unsigned int maxnum) {
 	                 //乘以比例系数
 	                 * (
 			                 //优化内存占用
-			                 //BUFF_DIFF 200000
-			                 //BUFF1 1.1
-			                 //BUFF2 1.3
 			                 maxnum > buffDoff ? bufSize1 : bufSize2
 	                 ));
 }
@@ -63,12 +60,22 @@ unsigned int getPrimeNumbers(
 	return calcedPrimeNumbers;
 }
 
-/*
- * 判断字符串s1是否比s2小
- * 对本程序进行了特化
+/**
+ * 判断字符串转换为无符号整型是否会溢出
  */
-int str_smaller(char *s1, char *s2) {
-	return !(*s2 != '-' || strlen(s1) > strlen(s2) || strcmp(s1, s2) > 0);
+int willOverFlow(char *numStr) {
+	static char maxValueStr[32] = {'\0'};
+	static const int negative1 = -1;
+	static size_t lenOfMaxValue;
+	if (*numStr == '-')return 1;
+	if (!*maxValueStr) {
+		sprintf(maxValueStr, "%u", *(unsigned int *) &negative1);
+		lenOfMaxValue = strlen(maxValueStr);
+	}
+	size_t numLen = strlen(numStr);
+	return lenOfMaxValue < numLen ? 1 :
+	       lenOfMaxValue > numLen ? 0 :
+	       strcmp(maxValueStr, numStr) < 0;
 }
 
 /*
@@ -90,10 +97,7 @@ int main(int argc, char *argv[]) {
 		}
 		
 		//判断最大值是否溢出
-		char c[32] = {'\0'};
-		unsigned int a = 1;
-		sprintf(c, "%d", (a << (sizeof(a) * 8 - 1)) - 1);
-		if (str_smaller(c, argv[1])) {
+		if (willOverFlow(argv[1])) {
 			//如果溢出
 			//输出错误提示
 			printf("too large maxmiun number");
