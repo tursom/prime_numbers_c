@@ -25,7 +25,7 @@ size_t neededSize(unsigned long maxNumber) {
 	return ((maxNumber - 1) >> 4) + 1;
 }
 
-int goGetPrimeNumbers(unsigned int maxNumber, unsigned char *buffer) {
+int goGetPrimeNumbers(unsigned int maxNumber, char *buffer) {
 	if (maxNumber < 2)return 0;
 	int primeNumberCount = 1;
 	for (int k = 0; k < neededSize(maxNumber); ++k) {
