@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <event.h>
 
 /**
  * 判断字符串转换为无符号整型是否会溢出
@@ -25,22 +26,64 @@ size_t neededSize(unsigned long maxNumber) {
 	return ((maxNumber - 1) >> 4) + 1;
 }
 
-int goGetPrimeNumbers(unsigned int maxNumber, char *buffer) {
-	if (maxNumber < 2)return 0;
-	int primeNumberCount = 1;
-	for (int k = 0; k < neededSize(maxNumber); ++k) {
-		buffer[k] = (char) 0xff;
+void goGetPrimeNumbers(unsigned int maxNumber, unsigned char *buffer) {
+	for (int k = 1; k < neededSize(maxNumber); ++k) {
+		buffer[k] = 0xff;
 	}
+	*buffer = 0xfe;
 	unsigned int sqrtMaxNumber = (unsigned int) sqrt(maxNumber);
 	for (size_t i = 3; i <= sqrtMaxNumber; i += 2) {
-		if (buffer[i >> 4] & 1 << (i >> 1) % 8) {
-			++primeNumberCount;
+		if (buffer[i >> 4] & 1 << ((i >> 1) & 7)) {
 			for (size_t j = i + i + i; j <= maxNumber; j += i + i) {
-				buffer[j >> 4] &= (char) ~(1 << (j >> 1) % 8);
+				buffer[j >> 4] &= ~(1 << ((j >> 1) & 7));
 			}
 		}
 	}
-	return primeNumberCount;
+	for (int l = maxNumber; l < neededSize(maxNumber) << 4; l++) {
+		buffer[l >> 4] &= ~(1 << ((l >> 1) & 7));
+	}
+}
+
+long getCurrentTime() {
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec * 1000 * 1000 + tv.tv_usec;
+}
+
+char ByteCode(unsigned char n) {
+	static const char table[256] = {
+			0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+			1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+			1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+			2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+			1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+			2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+			2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+			3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+			1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+			2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+			2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+			3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+			2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+			3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+			3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+			4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8,
+	};
+	return table[n];
+}
+
+void printByteMap(unsigned char n) {
+	printf("%d %d %d %d %d %d %d %d",
+	       (n & 1) != 0, (n & 0x2) != 0, (n & 0x4) != 0, (n & 0x8) != 0,
+	       (n & 0x10) != 0, (n & 0x20) != 0, (n & 0x40) != 0, (n & 0x80) != 0);
+}
+
+unsigned int getPrimeCount(unsigned char *buff, size_t buffSize) {
+	unsigned int primeCount = 1;
+	for (int i = 0; i < buffSize; ++i) {
+		primeCount += ByteCode(buff[i]);
+	}
+	return primeCount;
 }
 
 /**
@@ -81,26 +124,24 @@ int main(int argc, char *argv[]) {
 	}
 	
 	//分配内存，获得缓冲区;
-	char *buff = malloc(neededSize(maxNum));
+	unsigned char *buff = malloc(neededSize(maxNum));
 	
 	//进行计算
+	long t1 = getCurrentTime();
 	goGetPrimeNumbers(maxNum, buff);
+	long t2 = getCurrentTime();
 	//输出
 	if (output) {
 		printf(maxNum < 100001 ? "2 " : "2\n");
 		for (int i = 3; i <= maxNum; i += 2) {
-			if (buff[i / 16] & (1 << ((i / 2) % 8))) {
+			if (buff[i >> 4] & (1 << ((i >> 1) & 7))) {
 				printf(maxNum < 100001 ? "%d " : "%d\n", i);
 			}
 		}
 	}
-	int numbers = 1;
-	for (int i = 3; i <= maxNum; i += 2) {
-		if (buff[i / 16] & (1 << ((i / 2) % 8))) {
-			numbers++;
-		}
-	}
-	printf("\n%u numbers\n", numbers);
+	printf("\n%u numbers\nusing time:%li us, %li ms\n",
+	       getPrimeCount(buff, neededSize(maxNum)),
+	       t2 - t1, (t2 - t1) / 1000);
 	free(buff);
 	return 0;
 }
