@@ -27,19 +27,22 @@ size_t neededSize(unsigned long maxNumber) {
 }
 
 void goGetPrimeNumbers(unsigned int maxNumber, unsigned char *buffer) {
-	for (int k = 1; k < neededSize(maxNumber); ++k) {
+	size_t needSize = neededSize(maxNumber);
+	for (int k = 1; k < needSize; ++k) {
 		buffer[k] = 0xff;
 	}
 	*buffer = 0xfe;
 	unsigned int sqrtMaxNumber = (unsigned int) sqrt(maxNumber);
 	for (size_t i = 3; i <= sqrtMaxNumber; i += 2) {
 		if (buffer[i >> 4] & 1 << ((i >> 1) & 7)) {
-			for (size_t j = i + i + i; j <= maxNumber; j += i + i) {
+			size_t doubleI = i + i;
+			for (size_t j = i + doubleI; j <= maxNumber; j += doubleI) {
 				buffer[j >> 4] &= ~(1 << ((j >> 1) & 7));
 			}
 		}
 	}
-	for (int l = maxNumber; l < neededSize(maxNumber) << 4; l++) {
+	needSize <<= 4;
+	for (int l = maxNumber + 1; l < needSize; l++) {
 		buffer[l >> 4] &= ~(1 << ((l >> 1) & 7));
 	}
 }
