@@ -8,13 +8,13 @@
 /**
  * 判断字符串转换为无符号整型是否会溢出
  */
-int willOverFlow(char *numStr) {
-	static char maxValueStr[32] = {'\0'};
-	static const int negative1 = -1;
+int willOverFlow(const char *numStr) {
+	static char maxValueStr[64] = {'\0'};
+	static const long negative1 = -1;
 	static size_t lenOfMaxValue;
 	if (*numStr == '-')return 1;
 	if (!*maxValueStr) {
-		sprintf(maxValueStr, "%u", *(unsigned int *) &negative1);
+		sprintf(maxValueStr, "%lu", *(unsigned long *) &negative1);
 		lenOfMaxValue = strlen(maxValueStr);
 	}
 	size_t numLen = strlen(numStr);
@@ -24,29 +24,37 @@ int willOverFlow(char *numStr) {
 }
 
 size_t neededSize(unsigned long maxNumber) {
-	return (((maxNumber - 1) >> 4) + 1) & 0x0fffffffffffffff;
+	return ((((maxNumber - 1) >> 7) + 1) & 0x0fffffffffffffff) << 3; // NOLINT(hicpp-signed-bitwise)
 }
 
-void getPrimeNumbers(unsigned int maxNumber, unsigned char *buffer) {
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "hicpp-signed-bitwise"
+
+void getPrimeNumbers(unsigned long maxNumber, unsigned char *buffer) {
 	size_t needSize = neededSize(maxNumber);
-	for (int k = 1; k < needSize; ++k) {
-		buffer[k] = 0xff;
+	unsigned long defaultValue = ~((unsigned long) 0);
+	for (unsigned long *k = ((unsigned long *) buffer) + (needSize >> 3) - 1; k >= (unsigned long *) buffer; --k) {
+		*k = defaultValue;
 	}
 	*buffer = 0xfe;
-	unsigned int sqrtMaxNumber = (unsigned int) sqrt(maxNumber);
-	for (size_t i = 3; i <= sqrtMaxNumber; i += 2) {
-		if (buffer[i >> 4] & 1 << ((i >> 1) & 7)) {
-			size_t doubleI = i + i;
-			for (size_t j = i + doubleI; j <= maxNumber; j += doubleI) {
-				buffer[j >> 4] &= ~(1 << ((j >> 1) & 7));
+	unsigned int sqrtMaxNumber = (unsigned int) sqrt(maxNumber) >> 1;
+	maxNumber >>= 1;
+	for (size_t i = 1; i <= sqrtMaxNumber; i++) {
+		if (buffer[i >> 3] & 1 << (i & 7)) {
+			size_t doubleI = i + i + 1;
+			for (size_t j = (doubleI * doubleI) >> 1; j < maxNumber; j += doubleI) {
+				buffer[j >> 3] &= ~(1 << (j & 7));
 			}
 		}
 	}
-	needSize <<= 4;
-	for (int l = maxNumber + 1; l < needSize; l++) {
-		buffer[l >> 4] &= ~(1 << ((l >> 1) & 7));
+	needSize <<= 2;
+	for (int l = (maxNumber + 1) >> 1; l < needSize; l++) {
+		buffer[l >> 3] &= ~(1 << (l & 7));
 	}
 }
+
+#pragma clang diagnostic pop
 
 long getCurrentTime() {
 	struct timeval tv;
@@ -54,7 +62,7 @@ long getCurrentTime() {
 	return tv.tv_sec * 1000 * 1000 + tv.tv_usec;
 }
 
-char ByteCode(unsigned char n) {
+char ByteCode(const unsigned char n) {
 	static const char table[256] = {
 			0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
 			1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
@@ -76,19 +84,45 @@ char ByteCode(unsigned char n) {
 	return table[n];
 }
 
-void printByteMap(unsigned char n) {
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "hicpp-signed-bitwise"
+
+void printByteMap(const unsigned char n) {
 	printf("%d %d %d %d %d %d %d %d",
 	       (n & 1) != 0, (n & 0x2) != 0, (n & 0x4) != 0, (n & 0x8) != 0,
 	       (n & 0x10) != 0, (n & 0x20) != 0, (n & 0x40) != 0, (n & 0x80) != 0);
 }
 
-unsigned int getPrimeCount(unsigned char *buff, size_t buffSize) {
+#pragma clang diagnostic pop
+
+unsigned int getPrimeCount(const unsigned char *buff, size_t buffSize) {
 	unsigned int primeCount = 1;
 	for (int i = 0; i < buffSize; ++i) {
 		primeCount += ByteCode(buff[i]);
 	}
 	return primeCount;
 }
+
+typedef char bool;
+bool false = 0;
+bool true = 1;
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "hicpp-signed-bitwise"
+
+bool isPrime(unsigned int num, const unsigned char *bitMap) {
+	if (num < 2) {
+		return false;
+	} else if (num == 2) {
+		return true;
+	} else if (!(num & 1)) {
+		return false; // 偶数
+	} else {
+		return bitMap[num >> 4] & (1 << ((num >> 1) & 7));
+	}
+}
+
+#pragma clang diagnostic pop
 
 /**
  * 程序入口函数
@@ -100,7 +134,7 @@ int main(int argc, char *argv[]) {
 	}
 	
 	//最大值
-	unsigned int maxNum = 0;
+	unsigned long maxNum = 0;
 	if (argc > 1) {
 		//验证maxNum是否小于2，小于2的话计算没有意义
 		//这里不能用maxNum验证，有负数的问题
@@ -119,7 +153,7 @@ int main(int argc, char *argv[]) {
 		}
 		
 		//如果都没有问题
-		maxNum = (unsigned int) atol(argv[1]); // NOLINT(cert-err34-c)
+		maxNum = (unsigned long) atol(argv[1]); // NOLINT(cert-err34-c)
 	}
 	
 	int output = 1;
@@ -138,14 +172,15 @@ int main(int argc, char *argv[]) {
 	if (output) {
 		printf(maxNum < 100001 ? "2 " : "2\n");
 		for (int i = 3; i <= maxNum; i += 2) {
-			if (buff[i >> 4] & (1 << ((i >> 1) & 7))) {
+//			if (buff[i >> 4] & (1 << ((i >> 1) & 7))) { // NOLINT(hicpp-signed-bitwise)
+			if (isPrime(i, buff)) {
 				printf(maxNum < 100001 ? "%d " : "%d\n", i);
 			}
 		}
 	}
-	printf("\n%u numbers\nusing time:%li us, %li ms\n",
-	       getPrimeCount(buff, neededSize(maxNum)),
-	       t2 - t1, (t2 - t1) / 1000);
+	printf("\nmax number: %li, %u numbers\nusing time:%li us, %li ms, %li s\n",
+	       maxNum, getPrimeCount(buff, neededSize(maxNum)),
+	       t2 - t1, (t2 - t1) / 1000, (t2 - t1) / 1000 / 1000);
 	free(buff);
 	return 0;
 }
