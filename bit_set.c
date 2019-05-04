@@ -33,14 +33,22 @@ size_t neededSize(unsigned long maxNumber) {
 
 void getPrimeNumbers(unsigned long maxNumber, unsigned char *buffer) {
 	size_t needSize = neededSize(maxNumber);
-	unsigned long defaultValue = ~((unsigned long) 0);
-	for (unsigned long *k = ((unsigned long *) buffer) + (needSize >> 3) - 1; k >= (unsigned long *) buffer; --k) {
-		*k = defaultValue;
+	unsigned char arr[] = {219, 182, 109};
+	unsigned char initIndexArr[] = {1, 2, 0};
+	unsigned char initIndex = 0;
+	unsigned char *endP = buffer + needSize;
+	
+	// 初始化缓冲区
+	for (unsigned char *k = buffer + 1; k < endP; ++k) {
+		*k = arr[initIndex];
+		initIndex = initIndexArr[initIndex];
 	}
-	*buffer = 0xfe;
+	*buffer = 0x6e;
+	
+	// 进行计算
 	unsigned int sqrtMaxNumber = (unsigned int) sqrt(maxNumber) >> 1;
 	maxNumber >>= 1;
-	for (size_t i = 1; i <= sqrtMaxNumber; i++) {
+	for (size_t i = 2; i <= sqrtMaxNumber; i++) {
 		if (buffer[i >> 3] & 1 << (i & 7)) {
 			size_t doubleI = i + i + 1;
 			for (size_t j = (doubleI * doubleI) >> 1; j < maxNumber; j += doubleI) {
@@ -48,8 +56,10 @@ void getPrimeNumbers(unsigned long maxNumber, unsigned char *buffer) {
 			}
 		}
 	}
-	needSize <<= 2;
-	for (int l = (maxNumber + 1) >> 1; l < needSize; l++) {
+	
+	// 去除多余结果
+	needSize <<= 3;
+	for (int l = maxNumber; l < needSize; l++) {
 		buffer[l >> 3] &= ~(1 << (l & 7));
 	}
 }
@@ -87,7 +97,7 @@ char ByteCode(const unsigned char n) {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "hicpp-signed-bitwise"
 
-void printByteMap(const unsigned char n) {
+void printByteMap(unsigned char n) {
 	printf("%d %d %d %d %d %d %d %d",
 	       (n & 1) != 0, (n & 0x2) != 0, (n & 0x4) != 0, (n & 0x8) != 0,
 	       (n & 0x10) != 0, (n & 0x20) != 0, (n & 0x40) != 0, (n & 0x80) != 0);

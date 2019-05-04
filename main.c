@@ -1,3 +1,6 @@
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
+#pragma ide diagnostic ignored "hicpp-signed-bitwise"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -149,3 +152,5 @@ int main(int argc, char *argv[]) {
 	free(buff);
 	return 0;
 }
+
+#pragma clang diagnostic pop
