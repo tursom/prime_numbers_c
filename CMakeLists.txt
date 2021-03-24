@@ -4,7 +4,7 @@ project(prime_numbers_c C)
 set(CMAKE_C_STANDARD 99)
 
 add_executable(prime_numbers_c main.c)
-add_executable(bit_set bit_set.c)
+add_executable(bit_set bit_set.c time.h)
 IF (CMAKE_SYSTEM_NAME MATCHES "Windows")
     target_link_libraries(prime_numbers_c)
     target_link_libraries(bit_set)

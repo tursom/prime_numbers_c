@@ -4,27 +4,13 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include "time.h"
 
-//#define _WIN32
-
-#ifdef _WIN32
-#include <Windows.h>
-long getCurrentTime() {
-    LARGE_INTEGER freq;
-    QueryPerformanceCounter(&freq);
-    return (long) freq.QuadPart / 10;
-}
-#else
-
-#include <sys/time.h>
-
-long getCurrentTime() {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return tv.tv_sec * 1000 * 1000 + tv.tv_usec;
-}
-
-#endif
+#define bitIndex(i) (1 << ((i) & 7))
+#define bitIsUp(arr, i) arr[(i) >> 3] & bitIndex(i)
+#define bitDown(arr, i) arr[(i) >> 3] &= ~bitIndex(i)
+//#define isPrime(num, bitMap) ((num) < 2 ? false : (num) == 2 ? true : !((num) & 1) ? false :\
+//bitIsUp(bitMap, (num) >> 1))
 
 /**
  * 判断字符串转换为无符号整型是否会溢出
@@ -57,9 +43,9 @@ void getPrimeNumbers(unsigned long maxNumber, unsigned char *buffer) {
     unsigned char arr[] = {219, 182, 109};
     unsigned char initIndexArr[] = {1, 2, 0};
     unsigned char initIndex = 0;
-    unsigned char *endP = buffer + needSize;
 
     // 初始化缓冲区
+    unsigned char *endP = buffer + needSize;
     for (unsigned char *k = buffer + 1; k < endP; ++k) {
         *k = arr[initIndex];
         initIndex = initIndexArr[initIndex];
@@ -67,21 +53,21 @@ void getPrimeNumbers(unsigned long maxNumber, unsigned char *buffer) {
     *buffer = 0x6e;
 
     // 进行计算
-    unsigned int sqrtMaxNumber = (unsigned int) sqrt(maxNumber) >> 1;
+    unsigned int sqrtMaxNumber = (unsigned int) sqrt((double) maxNumber) >> 1;
     maxNumber >>= 1;
     for (size_t i = 2; i <= sqrtMaxNumber; i++) {
-        if (buffer[i >> 3] & 1 << (i & 7)) {
+        if (bitIsUp(buffer, i)) {
             size_t doubleI = i + i + 1;
             for (size_t j = (doubleI * doubleI) >> 1; j < maxNumber; j += doubleI) {
-                buffer[j >> 3] &= ~(1 << (j & 7));
+                bitDown(buffer, j);
             }
         }
     }
 
     // 去除多余结果
     needSize <<= 3;
-    for (int l = maxNumber; l < needSize; l++) {
-        buffer[l >> 3] &= ~(1 << (l & 7));
+    for (unsigned long l = maxNumber; l < needSize; l++) {
+        buffer[l >> 3] &= ~bitIndex(l);
     }
 }
 
@@ -134,15 +120,7 @@ bool true = 1;
 #pragma ide diagnostic ignored "hicpp-signed-bitwise"
 
 bool isPrime(unsigned int num, const unsigned char *bitMap) {
-    if (num < 2) {
-        return false;
-    } else if (num == 2) {
-        return true;
-    } else if (!(num & 1)) {
-        return false; // 偶数
-    } else {
-        return bitMap[num >> 4] & (1 << ((num >> 1) & 7));
-    }
+    return num < 2 ? false : num == 2 ? true : !(num & 1) ? false : bitIsUp(bitMap, num >> 1);
 }
 
 #pragma clang diagnostic pop
@@ -153,6 +131,7 @@ bool isPrime(unsigned int num, const unsigned char *bitMap) {
 int main(int argc, char *argv[]) {
     //必须给定最大值
     if (argc <= 1) {
+        printf("require maximum number");
         return 1;
     }
 
@@ -195,7 +174,6 @@ int main(int argc, char *argv[]) {
     if (output) {
         printf(maxNum < 100001 ? "2 " : "2\n");
         for (int i = 3; i <= maxNum; i += 2) {
-//			if (buff[i >> 4] & (1 << ((i >> 1) & 7))) { // NOLINT(hicpp-signed-bitwise)
             if (isPrime(i, buff)) {
                 printf(maxNum < 100001 ? "%d " : "%d\n", i);
             }
