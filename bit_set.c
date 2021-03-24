@@ -6,9 +6,15 @@
 #include <string.h>
 #include "time.h"
 
+//typedef int bool;
+//#define true 1;
+//#define false 0;
+
 #define bitIndex(i) (1 << ((i) & 7))
-#define bitIsUp(arr, i) arr[(i) >> 3] & bitIndex(i)
+#define bitIsUp(arr, i) ((arr)[(i) >> 3] & bitIndex(i))
 #define bitDown(arr, i) arr[(i) >> 3] &= ~bitIndex(i)
+#define bitUp(arr, i) arr[(i) >> 3] |= bitIndex(i)
+
 //#define isPrime(num, bitMap) ((num) < 2 ? false : (num) == 2 ? true : !((num) & 1) ? false :\
 //bitIsUp(bitMap, (num) >> 1))
 
@@ -40,7 +46,7 @@ size_t neededSize(unsigned long maxNumber) {
 
 void getPrimeNumbers(unsigned long maxNumber, unsigned char *buffer) {
     size_t needSize = neededSize(maxNumber);
-    unsigned char arr[] = {219, 182, 109};
+    unsigned char arr[] = {0xdb, 0xb6, 0x6d};
     unsigned char initIndexArr[] = {1, 2, 0};
     unsigned char initIndex = 0;
 
@@ -112,10 +118,6 @@ unsigned int getPrimeCount(const unsigned char *buff, size_t buffSize) {
     return primeCount;
 }
 
-typedef char bool;
-bool false = 0;
-bool true = 1;
-
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "hicpp-signed-bitwise"
 
@@ -158,9 +160,18 @@ int main(int argc, char *argv[]) {
         maxNum = (unsigned long) atol(argv[1]); // NOLINT(cert-err34-c)
     }
 
-    int output = 1;
+    bool output = true;
     if (argc > 2) {
         output = atoi(argv[2]); // NOLINT(cert-err34-c)
+    }
+
+    bool count = true;
+    if (argc > 3) {
+        count = atoi(argv[3]); // NOLINT(cert-err34-c)
+    }
+
+    if (count) {
+        printf("allocate %zu byte buffer\n", neededSize(maxNum));
     }
 
     //分配内存，获得缓冲区;
@@ -178,10 +189,16 @@ int main(int argc, char *argv[]) {
                 printf(maxNum < 100001 ? "%d " : "%d\n", i);
             }
         }
+        if (maxNum < 100001) {
+            printf("\n");
+        }
     }
-    printf("\nmax number: %li, find %u prime numbers\nusing time: %li s %li ms %li us\n",
-           maxNum, getPrimeCount(buff, neededSize(maxNum)),
-           (t2 - t1) / 1000 / 1000, (t2 - t1) / 1000 % 1000, (t2 - t1) % 1000);
+    if (count) {
+        unsigned int primeCount = getPrimeCount(buff, neededSize(maxNum));
+        printf("max number: %li, find %u prime number%s\nusing time: %li s %li ms %li us\n",
+               maxNum, primeCount, primeCount > 1 ? "s" : "",
+               (t2 - t1) / 1000 / 1000, (t2 - t1) / 1000 % 1000, (t2 - t1) % 1000);
+    }
     free(buff);
     return 0;
 }

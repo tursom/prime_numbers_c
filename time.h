@@ -16,6 +16,11 @@ long getCurrentTime() {
 
 #include <sys/time.h>
 
+
+typedef char bool;
+bool false = 0;
+bool true = 1;
+
 long getCurrentTime() {
     struct timeval tv;
     gettimeofday(&tv, NULL);

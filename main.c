@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
         maxNum = (unsigned int) atol(argv[1]); // NOLINT(cert-err34-c)
     }
 
-    int output = 1;
+    bool output = true;
     if (argc > 2) {
         output = atoi(argv[2]); // NOLINT(cert-err34-c)
     }
