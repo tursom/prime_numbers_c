@@ -1,13 +1,28 @@
+#pragma warning (disable:4819)
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
 
+//#define _WIN32
+
 #ifdef _WIN32
-#include <event.h>
+#include <Windows.h>
+long getCurrentTime() {
+    LARGE_INTEGER freq;
+    QueryPerformanceCounter(&freq);
+    return (long) freq.QuadPart / 10;
+}
 #else
 
 #include <sys/time.h>
+
+long getCurrentTime() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec * 1000 * 1000 + tv.tv_usec;
+}
 
 #endif
 
@@ -68,14 +83,6 @@ void getPrimeNumbers(unsigned long maxNumber, unsigned char *buffer) {
     for (int l = maxNumber; l < needSize; l++) {
         buffer[l >> 3] &= ~(1 << (l & 7));
     }
-}
-
-#pragma clang diagnostic pop
-
-long getCurrentTime() {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return tv.tv_sec * 1000 * 1000 + tv.tv_usec;
 }
 
 char ByteCode(const unsigned char n) {
